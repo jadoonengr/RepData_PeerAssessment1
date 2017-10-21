@@ -89,10 +89,10 @@ mean(dailySteps); median(dailySteps)
 
 ```r
 # Split according to intervals and calculate means. 
-intervalMean <- sapply(split(validActivityData$steps, validActivityData$interval), mean)
+intervalStepMean <- sapply(split(validActivityData$steps, validActivityData$interval), mean)
 intervals <- unique(validActivityData$interval)
 
-plot(intervals, intervalMean, type="l", xlab="5-minute Intervals", ylab="Average Number of Steps")
+plot(intervals, intervalStepMean, type="l", xlab="5-minute Intervals", ylab="Average Number of Steps")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
@@ -101,15 +101,15 @@ plot(intervals, intervalMean, type="l", xlab="5-minute Intervals", ylab="Average
 
 ```r
 # Re-format data
-intervalData <- data.frame(names(intervalMean),as.numeric(unlist(intervalMean)))
-names(intervalData)<-c("intervalNumber", "IntervalMean")
+intervalData <- data.frame(names(intervalStepMean),as.numeric(unlist(intervalStepMean)))
+names(intervalData)<-c("intervalNumber", "intervalStepMean")
 # Interval with maximum number of steps
 intervalData[which.max(intervalData[,2]),]
 ```
 
 ```
-##     intervalNumber IntervalMean
-## 104            835     206.1698
+##     intervalNumber intervalStepMean
+## 104            835         206.1698
 ```
 
 
@@ -204,22 +204,35 @@ Do these values differ from the estimates from the first part of the assignment?
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
 ```r
-weekend <- weekdays(activityData$date) %in% c("Saturday","Sunday")
-sapply(split(activityData$steps, weekend), mean, na.rm = TRUE)
+weekend <- as.numeric(weekdays(validActivityData$date) %in% c("Saturday","Sunday"))
+validActivityData$daytype <- c('weekday','weekend')[weekend+1L]
+sapply(split(validActivityData$steps, validActivityData$daytype), mean, na.rm = TRUE)
 ```
 
 ```
-##    FALSE     TRUE 
+##  weekday  weekend 
 ## 35.33796 43.07837
 ```
 **Hence, mean value of steps taken over the weekend (43.07837) is more than the steps taken during the week (35.33796)**
 
+2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
+```r
+# Load lattice package
+library(lattice)
 
+# Use aggregate to calculate means accoding to interval and daytype 
+newdata <- aggregate(steps ~ interval + daytype, data = validActivityData, mean)
+names(newdata) <- c("interval", "daytype", "steps")
 
+# Plot
+xyplot(newdata$steps ~ newdata$interval | newdata$daytype, type='l', layout=c(1,2), xlab="Interval", ylab="Number of steps")
+```
 
-
+![](PA1_template_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
 
 
